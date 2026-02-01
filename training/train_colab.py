@@ -59,6 +59,11 @@ def download_satellite_dataset(data_dir='satellite_data'):
     
     # Multiple mirror URLs with retry logic
     urls = [
+        # Google Drive mirror (most reliable)
+        "https://drive.google.com/uc?export=download&id=1r9VSsN-r1FJLRdnGi7VjxOwgcKBGtLpP",
+        # Kaggle mirror
+        "https://storage.googleapis.com/kaggle-data-sets/1043838/1775816/bundle/archive.zip",
+        # Original (often times out)
         "http://weegee.vision.ucmerced.edu/datasets/landuse.zip",
     ]
     
@@ -506,13 +511,24 @@ def train_satellite_sr(
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f"🖥️  Using device: {device}")
     
-    # Download and prepare data
+    # Check if data already exists (manual or preprocessed)
     print("\n" + "="*80)
     print("STEP 1: PREPARE REAL SATELLITE DATA")
     print("="*80)
     data_dir = Path(data_dir)
-    data_dir = download_satellite_dataset(data_dir)
-    processed_dir = prepare_real_satellite_data(data_dir, scale_factor=4, patch_size=64)
+    processed_dir = data_dir / 'processed'
+    
+    # Check if already preprocessed (by prepare_manual_data.py)
+    if (processed_dir / 'lr').exists() and len(list((processed_dir / 'lr').glob('*.png'))) > 0:
+        num_pairs = len(list((processed_dir / 'lr').glob('*.png')))
+        print(f"✅ Found preprocessed data! {num_pairs} LR/HR pairs ready")
+        print(f"   📂 Location: {processed_dir}")
+        print(f"   ℹ️  Data was prepared by prepare_manual_data.py")
+    else:
+        # Download and prepare data automatically
+        print("ℹ️  No preprocessed data found, downloading...")
+        data_dir = download_satellite_dataset(data_dir)
+        processed_dir = prepare_real_satellite_data(data_dir, scale_factor=4, patch_size=64)
     
     # Create datasets
     print("\n" + "="*80)
