@@ -45,46 +45,90 @@ def download_satellite_dataset(data_dir='satellite_data'):
     data_dir = Path(data_dir)
     
     if (data_dir / 'processed' / 'lr').exists():
-        print("✅ Dataset already downloaded and processed!")
+        num_images = len(list((data_dir / 'processed' / 'lr').glob('*.png')))
+        print(f"✅ Dataset already downloaded! Found {num_images} image pairs")
+        print("   ℹ️  No need to re-download (cached)")
         return data_dir
     
+    print("="*80)
+    print("STEP 1: DOWNLOAD REAL SATELLITE DATA")
+    print("="*80)
     print("📥 Downloading UC Merced Land Use Dataset (satellite imagery)...")
     print("   Size: ~320MB, Source: UC Merced (public domain)")
+    print("   This only happens ONCE - data is cached for future runs!\n")
     
-    url = "http://weegee.vision.ucmerced.edu/datasets/landuse.zip"
+    # Multiple mirror URLs with retry logic
+    urls = [
+        "http://weegee.vision.ucmerced.edu/datasets/landuse.zip",
+    ]
+    
     zip_path = data_dir / "dataset.zip"
     data_dir.mkdir(exist_ok=True, parents=True)
     
-    try:
-        # Download with progress
-        def report_progress(block_num, block_size, total_size):
-            downloaded = block_num * block_size
-            percent = min(downloaded / total_size * 100, 100) if total_size > 0 else 0
-            print(f"\r  Progress: {percent:.1f}% ({downloaded/(1024*1024):.1f}MB)", end='')
-        
-        urllib.request.urlretrieve(url, zip_path, reporthook=report_progress)
-        print("\n✅ Download complete!")
-        
-        # Extract
-        print("📦 Extracting dataset...")
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            zip_ref.extractall(data_dir / 'extracted')
-        
-        print("✅ Extraction complete!")
-        zip_path.unlink()  # Remove zip file
-        
-        return data_dir
-        
-    except Exception as e:
-        print(f"\n⚠️  Download failed: {e}")
-        print("Creating synthetic satellite-like dataset instead...")
-        create_synthetic_satellite_data(data_dir)
-        return data_dir
+    for attempt, url in enumerate(urls, 1):
+        try:
+            print(f"🔄 Attempt {attempt}: Connecting to server...")
+            
+            # Download with longer timeout and better progress
+            import socket
+            import time
+            socket.setdefaulttimeout(60)  # 60 second timeout
+            
+            def report_progress(block_num, block_size, total_size):
+                downloaded = block_num * block_size
+                if total_size > 0:
+                    percent = min(downloaded / total_size * 100, 100)
+                    mb_downloaded = downloaded / (1024 * 1024)
+                    mb_total = total_size / (1024 * 1024)
+                    bar_length = 40
+                    filled = int(bar_length * downloaded / total_size)
+                    bar = '█' * filled + '░' * (bar_length - filled)
+                    print(f"\r  📊 [{bar}] {percent:.1f}% ({mb_downloaded:.1f}/{mb_total:.1f}MB)", end='', flush=True)
+            
+            # Retry download 3 times before giving up
+            max_retries = 3
+            for retry in range(max_retries):
+                try:
+                    urllib.request.urlretrieve(url, zip_path, reporthook=report_progress)
+                    print("\n✅ Download complete!\n")
+                    break
+                except Exception as retry_e:
+                    if retry < max_retries - 1:
+                        print(f"\n⚠️  Connection interrupted, retrying in 5 seconds... ({retry+1}/{max_retries})")
+                        time.sleep(5)
+                    else:
+                        raise retry_e
+            
+            # Extract with progress
+            print("📦 Extracting dataset...")
+            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                members = zip_ref.namelist()
+                for i, member in enumerate(members, 1):
+                    zip_ref.extract(member, data_dir / 'extracted')
+                    if i % 100 == 0 or i == len(members):
+                        print(f"\r  Extracted {i}/{len(members)} files...", end='', flush=True)
+            
+            print("\n✅ Extraction complete!\n")
+            zip_path.unlink()  # Remove zip file
+            
+            return data_dir
+            
+        except Exception as e:
+            print(f"\n❌ Download failed: {str(e)[:100]}")
+            print("\n⚠️  IMPORTANT: UC Merced server may be down/slow")
+            print("   Creating synthetic satellite-like dataset instead...")
+            print("   (This will work but won't have real satellite features)\n")
+            create_synthetic_satellite_data(data_dir)
+            return data_dir
 
 
 def create_synthetic_satellite_data(data_dir, num_images=300):
     """Fallback: Create synthetic satellite-like imagery"""
+    print("="*80)
+    print("⚠️  USING SYNTHETIC DATA (Not real satellite imagery)")
+    print("="*80)
     print(f"🎨 Generating {num_images} synthetic satellite images...")
+    print("   This is a FALLBACK - results may be less accurate than real data\n")
     
     processed_dir = data_dir / 'processed'
     lr_dir = processed_dir / 'lr'
@@ -161,8 +205,13 @@ def prepare_real_satellite_data(data_dir, scale_factor=4, patch_size=64):
     hr_dir = processed_dir / 'hr'
     
     if lr_dir.exists() and len(list(lr_dir.glob('*.png'))) > 0:
-        print("✅ Data already processed!")
+        num_pairs = len(list(lr_dir.glob('*.png')))
+        print(f"✅ Data already processed! {num_pairs} LR/HR pairs ready")
         return processed_dir
+    
+    print("="*80)
+    print("STEP 2: PROCESS SATELLITE IMAGES INTO LR/HR PAIRS")
+    print("="*80)
     
     lr_dir.mkdir(exist_ok=True, parents=True)
     hr_dir.mkdir(exist_ok=True, parents=True)
@@ -545,7 +594,8 @@ def train_satellite_sr(
         model.train()
         train_loss = 0
         
-        pbar = tqdm(train_loader, desc=f'Epoch {epoch+1}/{num_epochs}')
+        pbar = tqdm(train_loader, desc=f'Epoch {epoch+1}/{num_epochs} [Training]', 
+                    ncols=100, bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]')
         for lr_img, hr_img in pbar:
             lr_img, hr_img = lr_img.to(device), hr_img.to(device)
             
@@ -561,8 +611,8 @@ def train_satellite_sr(
             train_loss += loss.item()
             pbar.set_postfix({
                 'Loss': f"{loss.item():.4f}",
-                'Pixel': f"{components['pixel']:.4f}",
-                'Edge': f"{components['edge']:.4f}"
+                'Pixel': f"{components['pixel']:.3f}",
+                'Edge': f"{components['edge']:.3f}"
             })
         
         avg_train_loss = train_loss / len(train_loader)
@@ -573,6 +623,7 @@ def train_satellite_sr(
         val_psnr_sum = 0
         val_ssim_sum = 0
         
+        print(f"  📊 Validating... ", end='', flush=True)
         with torch.no_grad():
             for lr_img, hr_img in val_loader:
                 lr_img, hr_img = lr_img.to(device), hr_img.to(device)
@@ -592,10 +643,13 @@ def train_satellite_sr(
         
         scheduler.step()
         
-        print(f"\nEpoch {epoch+1}/{num_epochs}")
-        print(f"  Train Loss: {avg_train_loss:.4f}")
-        print(f"  Val PSNR: {avg_psnr:.2f}dB")
-        print(f"  Val SSIM: {avg_ssim:.4f}")
+        # Progress indicator with emoji
+        progress_pct = (epoch + 1) / num_epochs * 100
+        progress_emoji = "🟢" if avg_psnr > best_psnr else "🔵"
+        
+        print(f"{progress_emoji} Epoch {epoch+1}/{num_epochs} ({progress_pct:.0f}% Complete)")
+        print(f"  📉 Train Loss: {avg_train_loss:.4f}")
+        print(f"  📈 Val PSNR: {avg_psnr:.2f}dB  |  SSIM: {avg_ssim:.4f}")
         
         # Save best model
         if avg_psnr > best_psnr:
