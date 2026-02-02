@@ -100,6 +100,10 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         raw_dir = sys.argv[1]
     
+    # For quick testing: Use only one folder
+    # Uncomment the line below to process only buildings folder
+    # raw_dir = 'data/satellite_raw/images/buildings'
+    
     # Check if raw data exists
     if not Path(raw_dir).exists():
         print("="*80)

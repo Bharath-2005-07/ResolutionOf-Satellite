@@ -506,6 +506,9 @@ def train_satellite_sr(
         visualize_every: Visualize every N epochs
     """
     
+    # Import Path at the beginning
+    from pathlib import Path
+    
     # Setup device
     if device is None:
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -579,14 +582,21 @@ def train_satellite_sr(
     print("STEP 3: INITIALIZE MODEL")
     print("="*80)
     
+    # Add project root to path
+    import sys
+    from pathlib import Path
+    project_root = Path(__file__).parent.parent
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+    
     try:
         from models.esrgan import ESRGANLite
         model = ESRGANLite(scale_factor=4).to(device)
-    except:
-        print("⚠️  Using inline model definition")
-        # Inline model definition (simplified)
-        from models import esrgan
-        model = esrgan.ESRGANLite(scale_factor=4).to(device)
+        print("✅ Loaded ESRGANLite model")
+    except Exception as e:
+        print(f"❌ Error loading model: {e}")
+        print("Please make sure models/esrgan.py exists")
+        raise
     
     print(f"📊 Model parameters: {sum(p.numel() for p in model.parameters()):,}")
     
@@ -738,10 +748,10 @@ if __name__ == '__main__':
     # Train the model
     model, history = train_satellite_sr(
         data_dir='satellite_data',
-        num_epochs=100,
+        num_epochs=15,  # Quick test - change to 100 for full training
         batch_size=8,
         learning_rate=2e-4,
-        visualize_every=10
+        visualize_every=5  # Visualize more frequently for testing
     )
     
     print("\n✅ Training complete! Check 'checkpoints/best_model.pth' for the trained model.")

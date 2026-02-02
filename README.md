@@ -6,6 +6,27 @@
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-orange.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
+## 📊 Training Results (February 2, 2026)
+
+| Metric | Bicubic (Baseline) | Our Model | Improvement |
+|--------|-------------------|-----------|-------------|
+| **PSNR** | 26.36 dB | **27.90 dB** | **+1.54 dB** ✅ |
+| **SSIM** | 0.8723 | **0.8908** | **+0.0185** ✅ |
+
+> **Training Details**: 15 epochs, 1000 images (900 train / 100 val), ~27 min/epoch on CPU  
+> **Categories**: Agricultural, Buildings, Forest, Freeway  
+> **Model**: ESRGAN-Lite (6,128,195 parameters)
+
+### 📈 Training Progress
+| Epoch | Val PSNR | Val SSIM | Train Loss |
+|-------|----------|----------|------------|
+| 1     | 21.51 dB | 0.8066   | 0.2971     |
+| 5     | 25.80 dB | 0.8733   | 0.1736     |
+| 10    | 26.67 dB | 0.8900   | 0.1595     |
+| **15**| **26.83 dB** | **0.8939** | **0.1554** |
+
+📝 See [TRAINING_LOG.md](TRAINING_LOG.md) for detailed epoch-by-epoch results
+
 ## 🎯 The Challenge
 
 | Source | Resolution | Cost | Availability |
@@ -13,15 +34,23 @@
 | Sentinel-2 | 10m/pixel | Free | Every 5 days |
 | WorldView | 0.3m/pixel | $$$$ | On-demand |
 
-**Our Goal**: Bridge this gap with 4x/8x AI upscaling while maintaining geospatial accuracy.
+**Our Goal**: Bridge this gap with 4x AI upscaling while maintaining geospatial accuracy.
+
+## 📚 Documentation
+
+| Document | Description |
+|----------|-------------|
+| [TRAINING_LOG.md](TRAINING_LOG.md) | Detailed epoch-by-epoch training results |
+| [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) | Complete folder & module documentation |
+| [IMPROVEMENT_GUIDE.md](IMPROVEMENT_GUIDE.md) | How to improve PSNR/SSIM further |
 
 ## ✨ Features
 
-- **ESRGAN-Lite**: Optimized for satellite imagery, runs on free-tier GPUs
-- **4x & 8x Upscaling**: 10m → 2.5m or 10m → 1.25m resolution
+- **ESRGAN-Lite**: 6.1M parameters, optimized for satellite imagery
+- **4x Upscaling**: 10m → 2.5m resolution (64×64 → 256×256)
+- **Multi-Loss Training**: L1 + VGG Perceptual + Edge-aware losses
 - **Hallucination Guardrails**: Prevents the model from inventing non-existent features
-- **Memory-Efficient Tiling**: Process large satellite images without RAM crashes
-- **Streamlit UI**: Interactive before/after comparison slider
+- **Real Satellite Data**: Trained on agricultural, buildings, forest, freeway categories
 
 ## 🏗️ Project Structure
 
@@ -31,9 +60,10 @@ ResolutionOf-Satellite/
 │   └── app.py                 # Streamlit web interface
 ├── models/
 │   ├── edsr.py               # EDSR architecture
-│   └── esrgan.py             # ESRGAN-Lite architecture
+│   └── esrgan.py             # ESRGAN-Lite architecture (6.1M params)
 ├── training/
-│   ├── train.py              # Complete training pipeline
+│   ├── train.py              # Original training script
+│   ├── train_colab.py        # Complete Colab training script ⭐
 │   ├── losses.py             # L1, Perceptual, Edge losses
 │   └── metrics.py            # PSNR, SSIM metrics
 ├── inference/
@@ -44,12 +74,20 @@ ResolutionOf-Satellite/
 │   ├── guards.py             # Hallucination guardrails
 │   └── preprocessing.py      # Data normalization
 ├── data/
-│   ├── dataset.py            # Data loaders (WorldStrat, GEE)
+│   ├── dataset.py            # Data loaders
 │   └── gee_fetch.py          # Google Earth Engine integration
 ├── notebooks/
-│   └── satellite_sr_colab.ipynb  # Colab notebook for judges
+│   └── Complete_Satellite_Training.ipynb  # Colab notebook
+├── checkpoints/
+│   └── best_model.pth        # Trained model (PSNR: 26.83dB) ⭐
+├── outputs/                   # Test results (SR & comparison images)
+├── results/                   # Training visualizations
+├── TRAINING_LOG.md           # Detailed training results ⭐
+├── PROJECT_STRUCTURE.md      # Module documentation ⭐
 └── requirements.txt
 ```
+
+📝 See [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) for detailed module documentation
 
 ## 🚀 Quick Start
 
