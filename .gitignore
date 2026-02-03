@@ -21,6 +21,9 @@ satellite_data/processed/
 satellite_data/lr/
 satellite_data/hr/
 
+# Raw satellite images (don't push - user's manual downloads)
+data/satellite_raw/images/
+
 # Large downloads and datasets (don't push)
 *.zip
 dataset.zip
