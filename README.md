@@ -80,10 +80,16 @@ ResolutionOf-Satellite/
 │   └── Complete_Satellite_Training.ipynb  # Colab notebook
 ├── checkpoints/
 │   └── best_model.pth        # Trained model (PSNR: 26.83dB) ⭐
-├── outputs/                   # Test results (SR & comparison images)
+├── outputs/
+│   └── colab/                # EuroSAT training results ⭐
+│       ├── COLAB_TRAINING_GUIDE.md  # Training step-by-step guide
+│       ├── best_model.pth           # EuroSAT trained model (50.25dB)
+│       ├── sr_colab_01-10_*.png     # 10 SR test results
+│       └── comparison_colab_01-10_*.png  # LR vs SR vs HR comparisons
 ├── results/                   # Training visualizations
 ├── TRAINING_LOG.md           # Detailed training results ⭐
 ├── PROJECT_STRUCTURE.md      # Module documentation ⭐
+├── train_eurosat_colab.py    # EuroSAT training script (40 epochs)
 └── requirements.txt
 ```
 
@@ -246,9 +252,27 @@ adversarial_weight = 0.005
 
 ## 📓 Colab Notebook
 
-Open the notebook for judges to run inference:
+### 🚀 Interactive Demo - Test Satellite Super-Resolution
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Bharath-2005-07/ResolutionOf-Satellite/blob/main/notebooks/Complete_Training_Colab.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1YhIk0jM_ysF67gZQ4iVgZttGw9KOXDLz?usp=sharing)
+
+**Features:**
+- ✅ Complete end-to-end training pipeline
+- ✅ EuroSAT dataset (1,600 satellite images)
+- ✅ Pre-configured for Google Colab (Tesla T4)
+- ✅ No API keys required
+- ✅ Ready to test with your own images
+- ✅ 40 epochs training (PSNR: 50.25 dB achieved)
+
+### 📊 Alternative Notebooks (GitHub)
+
+**Local Training Version:**
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Bharath-2005-07/ResolutionOf-Satellite/blob/main/notebooks/Complete_Satellite_Training.ipynb)
+
+**Safe Training Version:**
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Bharath-2005-07/ResolutionOf-Satellite/blob/main/notebooks/Satellite_SR_Training_Safe.ipynb)
+
+**Note:** All credentials and API keys are session-specific and NOT shared when you share the notebook.
 
 ## 🏆 Hackathon Scoring
 
@@ -267,15 +291,44 @@ Open the notebook for judges to run inference:
 3. **Training Speed**: Limit steps/epoch during development
 4. **Inference**: Use `ESRGANLite` for faster processing
 
-## 📝 License
 
-MIT License - See [LICENSE](LICENSE) for details.
+
+## � Contributors
+
+This project was developed by:
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/Bharath-2005-07">
+        <img src="https://github.com/Bharath-2005-07.png" width="100px;" alt="Bharath"/><br />
+        <sub><b>Bharath-2005-07</b></sub>
+      </a><br />
+      <sub>Project Lead & ML Engineer</sub>
+    </td>
+    <td align="center">
+      <a href="https://github.com/1BM23CS345">
+        <img src="https://github.com/1BM23CS345.png" width="100px;" alt="1BM23CS345"/><br />
+        <sub><b>1BM23CS345</b></sub>
+      </a><br />
+      <sub>Collaborator</sub>
+    </td>
+    <td align="center">
+      <a href="https://github.com/santhoshn-git">
+        <img src="https://github.com/santhoshn-git.png" width="100px;" alt="Santhosh N"/><br />
+        <sub><b>santhoshn-git</b></sub>
+      </a><br />
+      <sub>Collaborator</sub>
+    </td>
+  </tr>
+</table>
 
 ## 🙏 Acknowledgments
 
 - [ESRGAN Paper](https://arxiv.org/abs/1809.00219)
 - [WorldStrat Dataset](https://github.com/worldstrat/worldstrat)
 - [Google Earth Engine](https://earthengine.google.com/)
+- [EuroSAT Dataset](https://github.com/phelber/EuroSAT)
 
 ---
 

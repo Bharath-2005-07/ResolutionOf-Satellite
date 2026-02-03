@@ -132,11 +132,20 @@ def main():
         help="4x: 10m → 2.5m, 8x: 10m → 1.25m"
     )
     
-    # Model path (optional)
+    # Model path (optional) - auto-detect if exists
+    default_model_path = "checkpoints/best_model.pth"
+    if Path(default_model_path).exists():
+        default_value = default_model_path
+        help_text = "Using trained model from checkpoints/"
+    else:
+        default_value = ""
+        help_text = "Leave empty to use untrained model for demo"
+    
     model_path = st.sidebar.text_input(
-        "Model Checkpoint (optional)",
+        "Model Checkpoint",
+        value=default_value,
         placeholder="checkpoints/best_model.pth",
-        help="Leave empty to use untrained model for demo"
+        help=help_text
     )
     model_path = model_path if model_path else None
     
